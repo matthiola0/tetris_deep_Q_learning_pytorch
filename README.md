@@ -13,8 +13,8 @@ The demo could also be found at [youtube demo](https://youtu.be/g96x6uATAR8)
 ## How to use my code
 
 With my code, you can:
-* **Train your model from scratch** by running **python train.py**
-* **Test your trained model** by running **python test.py**
+* **Train your model from scratch** by running `python train.py`
+* **Test your trained model** by running `python test.py`
 
 ## Trained models
 
@@ -28,3 +28,20 @@ You could find my trained model at **trained_models/tetris**
 * **pytorch** 
 * **numpy**
 * **matplotlib**
+* **tensorboardX**
+
+## 安裝
+```
+conda create -n tetris python=3.6
+conda activate tetris
+```
+```
+conda install pytorch=1.7.1 torchvision=0.8.2 torchaudio=0.7.2 cudatoolkit=11.0 -c pytorch
+```
+```
+pip install -r requirements.txt
+```
+
+
+## 介紹
+https://blog.csdn.net/qq128252/article/details/129145534

@@ -1,0 +1,5 @@
+numpy==1.18.5
+Pillow==6.2.2
+opencv-python==4.2.0.32
+matplotlib==3.2.2
+tensorboardX==2.1
