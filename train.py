@@ -90,11 +90,11 @@ def train(opt):
         next_state = next_states[index, :]
         action = next_actions[index]
 
-        # 執行該動作，回傳 reward 與是否遊戲結束（done）
         reward, done = env.step(action, render=True)
-
         if torch.cuda.is_available():
             next_state = next_state.cuda()
+        
+        # 把這筆經驗存到 replay buffer（後面訓練用）
         replay_memory.append([state, reward, next_state, done])
 
         # 若遊戲已結束，初始化下一輪；否則更新 state 為 next_state
@@ -124,7 +124,7 @@ def train(opt):
             reward_batch = reward_batch.cuda()
             next_state_batch = next_state_batch.cuda()
 
-         # 計算目前狀態的 Q 值預測
+        # 計算目前狀態的 Q 值預測
         q_values = model(state_batch)
         # 計算下一狀態的最大 Q 值（目標 Q 值）
         model.eval()
