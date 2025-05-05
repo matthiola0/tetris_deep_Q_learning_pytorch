@@ -2,7 +2,7 @@
 
 ## 介紹
 
-這是我用來訓練代理（agent）玩俄羅斯方塊的 Python 原始碼。它可以作為強化學習應用的一個非常基礎的範例。
+這是用來訓練代理（agent）玩俄羅斯方塊的 Python 原始碼。它可以作為強化學習應用的一個非常基礎的範例。
 
 <p align="center">
   <img src="demo/tetris.gif" width=600><br/>
