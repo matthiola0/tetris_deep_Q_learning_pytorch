@@ -62,32 +62,42 @@ def train(opt):
     epoch = 0
     while epoch < opt.num_epochs:
         next_steps = env.get_next_states()
-        # Exploration or exploitation
+
+        # 根據訓練進度計算目前的 ε 值(線性遞減)
         epsilon = opt.final_epsilon + (max(opt.num_decay_epochs - epoch, 0) * (
                 opt.initial_epsilon - opt.final_epsilon) / opt.num_decay_epochs)
-        u = random()
-        random_action = u <= epsilon
+        
         next_actions, next_states = zip(*next_steps.items())
         next_states = torch.stack(next_states)
         if torch.cuda.is_available():
             next_states = next_states.cuda()
+
+        # 對所有下一步的狀態用模型預測其 Q 值
         model.eval()
         with torch.no_grad():
             predictions = model(next_states)[:, 0]
         model.train()
+
+        # 根據 ε 決定使用隨機動作或最大 Q 值對應的動作
+        u = random()
+        random_action = u <= epsilon
         if random_action:
             index = randint(0, len(next_steps) - 1)
         else:
             index = torch.argmax(predictions).item()
 
+        # 選擇該動作對應的狀態與動作
         next_state = next_states[index, :]
         action = next_actions[index]
 
+        # 執行該動作，回傳 reward 與是否遊戲結束（done）
         reward, done = env.step(action, render=True)
 
         if torch.cuda.is_available():
             next_state = next_state.cuda()
         replay_memory.append([state, reward, next_state, done])
+
+        # 若遊戲已結束，初始化下一輪；否則更新 state 為 next_state
         if done:
             final_score = env.score
             final_tetrominoes = env.tetrominoes
@@ -101,6 +111,8 @@ def train(opt):
         if len(replay_memory) < opt.replay_memory_size / 10:
             continue
         epoch += 1
+
+        # 從 replay memory 隨機抽樣一個 batch
         batch = sample(replay_memory, min(len(replay_memory), opt.batch_size))
         state_batch, reward_batch, next_state_batch, done_batch = zip(*batch)
         state_batch = torch.stack(tuple(state for state in state_batch))
@@ -112,16 +124,20 @@ def train(opt):
             reward_batch = reward_batch.cuda()
             next_state_batch = next_state_batch.cuda()
 
+         # 計算目前狀態的 Q 值預測
         q_values = model(state_batch)
+        # 計算下一狀態的最大 Q 值（目標 Q 值）
         model.eval()
         with torch.no_grad():
             next_prediction_batch = model(next_state_batch)
         model.train()
 
+        # 計算 TD Target（y 值）：若 done 為 True，則為 reward；否則為 reward + γ * max(Q(next_state))
         y_batch = torch.cat(
             tuple(reward if done else reward + opt.gamma * prediction for reward, done, prediction in
                   zip(reward_batch, done_batch, next_prediction_batch)))[:, None]
 
+        # 執行反向傳播與參數更新
         optimizer.zero_grad()
         loss = criterion(q_values, y_batch)
         loss.backward()
